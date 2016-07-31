@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>爱心鱼的小游戏</title>
+	<meta name="name" content="content;" charset="utf-8">
+	<style type="text/css">
+		body{
+			padding-top: 10px;
+		}
+		.all-bg{
+			width: 800px;
+			height: 600px;
+			margin:0 auto;
+		}
+		#allCanvas{
+			position: relative;
+			width: 800px;
+			height: 600px;
+			margin:0px;
+		}
+		#canvas1{
+				position: absolute;
+				bottom: 0px;
+				left: 0px;
+				z-index: 1;
+		}
+		#canvas2{
+				position: absolute;
+				bottom: 0px;
+				left: 0px;
+				z-index: 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="all-bg">
+		<div id="allCanvas">
+			<canvas id="canvas1" width="800" height="600"></canvas>
+			<canvas id="canvas2" width="800" height="600"></canvas>
+		
+		</div>
+		
+	</div>
+	<script src="js/main.js" type="text/javascript" ></script>
+	<script src="js/commonFunctions.js" type="text/javascript" ></script>
+	<script src="js/ane.js" type="text/javascript" ></script>
+	<script src="js/fruit.js" type="text/javascript" ></script>
+	<script src="js/fishMom.js" type="text/javascript" ></script>
+	<script src="js/eatFruit.js" type="text/javascript" ></script>
+	<script src="js/fishBaby.js" type="text/javascript" ></script>
+	<script src="js/data.js" type="text/javascript" ></script>
+</body>
+</html>
