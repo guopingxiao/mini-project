@@ -397,8 +397,8 @@
 			                success:function(result){
 			                    //数据解码
 			                    //debugger;
-			                    var data = $.base64.decode(result);
-			                    var json = decodeURIComponent(escape(data));
+			                    var data = $.base64.decode(result);//解析后台php base64.encode(data)的数据
+			                    var json = decodeURIComponent(escape(data));//解码--编码的数据escape();解析出来英文
 			                    callback(json);//真回调，非上述的callback
 			                }
 			            });
@@ -458,19 +458,19 @@
             
             //整个项目的入口函数
             function main(){
-                reader_UI = readerView(Dom.fiction_container);
-                reader_model = readerModel();
+                reader_UI = readerView(Dom.fiction_container);//传入一个参数，dom容器；输出一个函数解析数据，传入参数data即可
+                reader_model = readerModel(); //实例化一个model
                 reader_model.init(function(data){
-                    reader_UI(data);
+                    reader_UI(data);          //解析数据data
                 });
                 
-                eventHandler();
+                eventHandler();    //处理事件
             }
             
            
     //  ------------------项目的Model------------------------------------------------ 
     
-    
+			//用promise去处理多层的异步调用；===》多层回调？避免的多层回调 promise，generate；
             //项目的M，实现阅读相关的数据交互方法
             function readerModel(){
                 var chapterID;
@@ -485,13 +485,30 @@
                         callback && callback();
                     },'json');
                 }
+				
+				//使用promise去除回调函数
+				var getFictionInfoPromise = function(){
+					return  new Promise(function(resovle,reject){
+						$.get('./data/chapter.json',function(data){
+							//TODO 获得章节信息之后的回调
+							if(data.result == '0'){
+								chapterID = data.chapters[1].chapter_id;
+								chapterNum = data.chapters.length;
+								resovle(data);
+							}else{
+								reject();
+							}
+						},'json');
+					
+					})
+				}
                 
                 //获得章节内容
                 var getChapterContent = function(chapter_id, callback ){
                     //获得章节内容后的回调，data1,2,3,4.json
                     $.get('data/data' + chapter_id + '.json',function(data){
                         if(data.result == '0'){
-                            var url = data.jsonp;//得到jsonp的url地址==可以看jsonp地址里的数据
+                            var url = data.jsonp;//得到jsonp的url地址==可以看jsonp地址里的数据,这里涉及到了跨域请求。
                             
                             //调用封装好函数，跨域请求，并对数据base64解码
                             Util.getJSONP(url, function(data){
@@ -501,15 +518,52 @@
                         }
                     },'json');
                 };
+				
+				//进一步promise优化
+				
+				var getChapterContentPromise = function(){
+					return new Promise(function(resolve,reject){
+						$.get('data/data' + chapterID + '.json',function(data){
+							if(data.result == '0'){
+								var url = data.jsonp;//得到jsonp的url地址==可以看jsonp地址里的数据,这里涉及到了跨域请求。
+								
+								//调用封装好函数，跨域请求，并对数据base64解码
+								Util.getJSONP(url, function(data){
+									resolve(data);
+								});
+							}else{
+								reject();
+							}
+						},'json');
+					});
+				}
                 
                 var init = function(UIcallback){
-                    getFictionInfo(function(){
-                        getChapterContent(chapterID,function(data){
+                    //getFictionInfo(function(){
+                        //getChapterContent(chapterID,function(data){
                             //todo....
-                            UIcallback && UIcallback(data);
-                        });
-                    });
-                }
+                          //  UIcallback && UIcallback(data);
+                        //});
+                    //});
+					
+					//单次回调，感觉不出来优势呀！
+					//getFictionInfoPromise().then(function(data){
+						//getChapterContent(chapterID,function(data){
+                         // UIcallback && UIcallback(data);
+						//})	
+					//})
+					
+					//多次回调
+					getFictionInfoPromise().then(function(data){
+						return getChapterContentPromise();
+						}).then(function(data){
+							UIcallback && UIcallback(data);
+						})	
+				}
+				
+				//var init = function(){
+				//
+				//}
                 
                 //上一章翻页
                 var preChapter = function(UIcallback){
